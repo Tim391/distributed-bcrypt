@@ -48,9 +48,9 @@ namespace DistributedBCrypt
             });
         }
 
-        private Queue<UserPasswordBatch> CreateBatches(UserPassword[] answers)
+        private Queue<UserPasswordBatch> CreateBatches(UserPassword[] passwords)
         {
-            var total = answers.Length;
+            var total = passwords.Length;
 
             Console.WriteLine($"Total answers to hash: {total}");
             var chunkSize = 200;
@@ -61,7 +61,7 @@ namespace DistributedBCrypt
 
             for (int i = 0; i < chunks; i++)
             {
-                var inChunk = answers.Skip(i * chunkSize).Take(chunkSize).ToArray();
+                var inChunk = passwords.Skip(i * chunkSize).Take(chunkSize).ToArray();
                 results.Enqueue(new UserPasswordBatch(inChunk, i+1));
             }
             return results;

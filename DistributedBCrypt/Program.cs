@@ -17,7 +17,7 @@ namespace DistributedBCrypt
                     remote {
                         helios.tcp {
 		                    port = 8099
-		                    hostname = C2383
+		                    hostname = localhost
                         }
                     }
                 }")))
