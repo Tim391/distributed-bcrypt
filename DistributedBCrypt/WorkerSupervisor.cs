@@ -36,8 +36,6 @@ namespace DistributedBCrypt
                     File.WriteAllText("D:\\PasswordHashes.csv", processedAnswers.ToCsv());
                     Console.WriteLine("Processing complete!");
 
-                    //Context.System.Terminate();
-
                     return;
                 }
 
