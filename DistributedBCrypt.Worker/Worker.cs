@@ -27,13 +27,12 @@ namespace DistributedBCrypt.Worker
             Thread.Sleep(2000);
             _system = ActorSystem.Create("Worker", ConfigurationFactory.ParseString(hocon));
 
-            _system.ActorOf(Props.Create(() => new RegistrationActor("akka.tcp://Deployer@localhost:8099/user/master")), "worker");
-            _system.AwaitTermination();
+            _system.ActorOf(Props.Create(() => new WorkerActor("akka.tcp://Deployer@localhost:8099/user/master")), "worker");
         }
 
         public void Stop()
         {
-            _system.Shutdown();
+            _system.Terminate();
         }
     }
 }

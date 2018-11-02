@@ -36,7 +36,7 @@ namespace DistributedBCrypt
                     File.WriteAllText("D:\\PasswordHashes.csv", processedAnswers.ToCsv());
                     Console.WriteLine("Processing complete!");
 
-                    Context.System.Shutdown();
+                    //Context.System.Terminate();
 
                     return;
                 }
@@ -55,7 +55,7 @@ namespace DistributedBCrypt
             Console.WriteLine($"Total answers to hash: {total}");
             var chunkSize = 200;
             Console.WriteLine($"Chunk size: {chunkSize}");
-            var chunks = (int)Math.Ceiling(total / ((double)chunkSize));
+            var chunks = (int)Math.Ceiling(total / (double)chunkSize);
 
             var results = new Queue<UserPasswordBatch>();
 
