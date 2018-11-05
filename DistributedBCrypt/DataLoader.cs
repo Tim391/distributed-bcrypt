@@ -10,7 +10,7 @@ namespace DistributedBCrypt
         {
             var passwords = new List<UserPassword>();
 
-            for (var i = 0; i < 1000; i++)
+            for (var i = 0; i < 1001; i++)
             {
                 passwords.Add(new UserPassword(Guid.NewGuid(), $"VerySecurePassword{i}"));
             }
