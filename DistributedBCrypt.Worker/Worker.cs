@@ -16,8 +16,8 @@ namespace DistributedBCrypt.Worker
                 akka {  
                     actor.provider = ""Akka.Remote.RemoteActorRefProvider, Akka.Remote""
                     remote {
-                        helios.tcp {
-		                    port = 8090
+                        dot-netty.tcp {
+		                    port = 0 # bound to a dynamic port assigned by the OS
 		                    hostname = #MachineName#
                         }
                     }
@@ -27,7 +27,7 @@ namespace DistributedBCrypt.Worker
             Thread.Sleep(2000);
             _system = ActorSystem.Create("Worker", ConfigurationFactory.ParseString(hocon));
 
-            _system.ActorOf(Props.Create(() => new WorkerActor("akka.tcp://Deployer@localhost:8099/user/master")), "worker");
+            _system.ActorOf(Props.Create(() => new WorkerActor("akka.tcp://Supervisor@localhost:8099/user/supervisor")), "worker");
         }
 
         public void Stop()

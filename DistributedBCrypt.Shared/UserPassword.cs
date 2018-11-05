@@ -16,7 +16,7 @@ namespace DistributedBCrypt.Shared
 
         public HashedPasswordEntry HashPasswordWithBCrypt()
         {
-            var newPassword = BCrypt.HashPassword(Password, 10); //Normally 12+. Reduced for speed during tests
+            var newPassword = BCrypt.HashPassword(Password, 11); //Normally 12+. Reduced for speed during tests
 
             return new HashedPasswordEntry(UserId, newPassword);
         }

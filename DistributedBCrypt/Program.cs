@@ -9,13 +9,13 @@ namespace DistributedBCrypt
     {
         static void Main(string[] args)
         {
-            using (var system = ActorSystem.Create("Deployer", ConfigurationFactory.ParseString(@"
+            using (var system = ActorSystem.Create("Supervisor", ConfigurationFactory.ParseString(@"
                 akka {  
                     actor{
                         provider = ""Akka.Remote.RemoteActorRefProvider, Akka.Remote""
                     }
                     remote {
-                        helios.tcp {
+                        dot-netty.tcp {
 		                    port = 8099
 		                    hostname = localhost
                         }
@@ -23,7 +23,7 @@ namespace DistributedBCrypt
                 }")))
             {
                 var passwords = new DataLoader().GetPasswords().ToArray();
-                system.ActorOf(Props.Create(() => new WorkerSupervisor(passwords)), "master");
+                system.ActorOf(Props.Create(() => new WorkerSupervisor(passwords)), "supervisor");
 
                 Console.ReadKey();
             }
