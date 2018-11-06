@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using Akka.Actor;
@@ -10,48 +11,113 @@ namespace DistributedBCrypt
 {
     public class WorkerSupervisor : ReceiveActor
     {
+        private class SupervisorState
+        {
+            private IImmutableList<UserPasswordBatch> PasswordBatches { get; }
+            private Queue<int> BatchesToProcess { get;  }
+            private Dictionary<int, string> BatchesInProgess { get; }
+            public List<HashedPasswordEntry> ProcessedPasswords { get; }
+
+            public SupervisorState(IImmutableList<UserPasswordBatch> passwordBatches)
+            {
+                PasswordBatches = passwordBatches;
+                BatchesToProcess = new Queue<int>(passwordBatches.Select(b => b.BatchId));
+                BatchesInProgess = new Dictionary<int, string>();
+                ProcessedPasswords = new List<HashedPasswordEntry>();
+            }
+
+            public UserPasswordBatch NextBatch(string actorPath)
+            {
+                var nextBatchId = BatchesToProcess.Dequeue();
+                var nextBatch = PasswordBatches.First(b => b.BatchId == nextBatchId);
+                BatchesInProgess.Add(nextBatchId, actorPath);
+
+                return nextBatch;
+            }
+
+            public void CompleteBatch(BatchFinished batch)
+            {
+                BatchesInProgess.Remove(batch.BatchId);
+                ProcessedPasswords.AddRange(batch.NewPasswords);
+            }
+
+            public int RemainingBatches()
+            {
+                return BatchesToProcess.Count;
+            }
+
+            public bool ProcessingComplete()
+            {
+                return BatchesToProcess.Count <= 0 &&
+                       BatchesInProgess.Count <= 0;
+            }
+
+            public void BatchFailed(string actorPath)
+            {
+                var inProgress = BatchesInProgess
+                    .Where(bd => bd.Value == actorPath)
+                    .Select(b => b.Key)
+                    .ToList();
+
+                if (!inProgress.Any()) return;
+
+                foreach (var batchId in inProgress)
+                {
+                    BatchesInProgess.Remove(batchId);
+                    BatchesToProcess.Enqueue(batchId);
+                }
+            }
+        }
+
         public WorkerSupervisor(UserPassword[] answers)
         {
-            var batches = CreateBatches(answers);
-            var processedAnswers = new List<HashedPasswordEntry>();
-            int remainingBatches = batches.Count;
-            Console.WriteLine($"Total Batches: {remainingBatches}");
-
+            var state = new SupervisorState(CreateBatches(answers));
+            Console.WriteLine($"Total Batches: {state.RemainingBatches()}");
 
             Receive<ReadyForWork>(worker =>
             {
+                Context.Watch(Sender);
                 Console.WriteLine($"Worker ready: {Sender.Path}");
-                if (batches.Count > 0)
+
+                if (state.RemainingBatches() > 0)
                 {
-                    Sender.Tell(batches.Dequeue());
+                    var nextbatch = state.NextBatch(Sender.Path.ToStringWithAddress());
+                    Console.WriteLine($"Sending batch {nextbatch.BatchId} to {Sender.Path}");
+                    Sender.Tell(nextbatch);
                 }
             });
 
             Receive<BatchFinished>(b =>
             {
-                remainingBatches--;
-                processedAnswers.AddRange(b.NewPasswords);
-                if (remainingBatches <= 0)
-                {
-                    File.WriteAllText("D:\\PasswordHashes.csv", processedAnswers.ToCsv());
-                    Console.WriteLine("Processing complete!");
+                state.CompleteBatch(b);
+                Console.WriteLine($"Batch {b.BatchId} complete. {state.RemainingBatches()} batches remaining");
 
+                if (state.RemainingBatches() > 0)
+                {
+                    var nextbatch = state.NextBatch(Sender.Path.ToStringWithAddress());
+                    Console.WriteLine($"Sending batch: {nextbatch.BatchId} to {Sender.Path}");
+                    Sender.Tell(nextbatch);
                     return;
                 }
 
-                Console.WriteLine($"Batch complete. {remainingBatches} batches remaining");
+                if (state.ProcessingComplete())
+                {
+                    File.WriteAllText("D:\\PasswordHashes.csv", state.ProcessedPasswords.ToCsv());
+                    Console.WriteLine("Processing complete!");
+                }
+            });
 
-                if (batches.Count > 0) 
-                    Sender.Tell(batches.Dequeue());
+            Receive<Terminated>(t => {
+                Console.WriteLine($"Termination received from {t.ActorRef.Path}");
+                state.BatchFailed(t.ActorRef.Path.ToStringWithAddress());
             });
         }
 
-        private Queue<UserPasswordBatch> CreateBatches(UserPassword[] passwords)
+        private IImmutableList<UserPasswordBatch> CreateBatches(UserPassword[] passwords)
         {
-            var batches = passwords.BatchesOf(200)
-                .Select((pb, i) => new UserPasswordBatch(pb, i + 1));
-
-            return new Queue<UserPasswordBatch>(batches);
+            return passwords.BatchesOf(200)
+                .Select((pb, i) => new UserPasswordBatch(pb, i + 1))
+                .ToImmutableList();
         }
     }
 

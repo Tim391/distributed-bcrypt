@@ -160,6 +160,7 @@
     <Compile Include="BatchFinished.cs" />
     <Compile Include="HashedPasswordEntry.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RegistrationActor.cs" />
     <Compile Include="WorkerActor.cs" />
     <Compile Include="UserPassword.cs" />
     <Compile Include="UserPasswordBatch.cs" />
