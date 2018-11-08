@@ -1,8 +1,9 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
 using Akka.Actor;
 using Akka.Configuration;
-using DistributedBCrypt;
+using Microsoft.Extensions.Configuration;
 
 namespace DistributedBcrypt.Supervisor
 {
@@ -10,18 +11,29 @@ namespace DistributedBcrypt.Supervisor
     {
         static void Main(string[] args)
         {
-            using (var system = ActorSystem.Create("Supervisor", ConfigurationFactory.ParseString(@"
+            var builder = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+
+            IConfiguration configuration = builder.Build();
+
+            var hocon = @"
                 akka {  
                     actor{
                         provider = ""Akka.Remote.RemoteActorRefProvider, Akka.Remote""
                     }
                     remote {
                         dot-netty.tcp {
-		                    port = 8099
-		                    hostname = localhost
+		                    port = #port#
+		                    hostname = #hostname#
                         }
                     }
-                }")))
+                }";
+
+            hocon = hocon.Replace("#port#", configuration["port"])
+                .Replace("#hostname#", configuration["hostname"]);
+
+            using (var system = ActorSystem.Create("Supervisor", ConfigurationFactory.ParseString(hocon)))
             {
                 var passwords = new DataLoader().GetPasswords().ToArray();
                 system.ActorOf(Props.Create(() => new WorkerSupervisor(passwords)), "supervisor");

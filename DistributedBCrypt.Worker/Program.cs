@@ -1,7 +1,9 @@
 ﻿using System;
+using System.IO;
 using Akka.Actor;
 using Akka.Configuration;
 using DistributedBCrypt.Shared;
+using Microsoft.Extensions.Configuration;
 
 namespace DistributedBcrypt.Worker
 {
@@ -9,6 +11,12 @@ namespace DistributedBcrypt.Worker
     {
         static void Main(string[] args)
         {
+            var builder = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+
+            IConfiguration configuration = builder.Build();
+
             var hocon = @"
                 akka {  
                     actor.provider = ""Akka.Remote.RemoteActorRefProvider, Akka.Remote""
@@ -24,7 +32,8 @@ namespace DistributedBcrypt.Worker
 
             using (var system = ActorSystem.Create("Worker", ConfigurationFactory.ParseString(hocon)))
             {
-                system.ActorOf(Props.Create(() => new RegistrationActor("akka.tcp://Supervisor@localhost:8099/user/supervisor")), "worker");
+                var supervisorPath = configuration["supervisorPath"];
+                system.ActorOf(Props.Create(() => new RegistrationActor(supervisorPath)), "worker");
 
                 Console.ReadKey();
             }
