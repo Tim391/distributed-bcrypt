@@ -7,7 +7,7 @@ using Akka.Actor;
 using DistributedBCrypt.Shared;
 using ServiceStack;
 
-namespace DistributedBCrypt
+namespace DistributedBcrypt.Supervisor
 {
     public class WorkerSupervisor : ReceiveActor
     {

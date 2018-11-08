@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using DistributedBCrypt.Shared;
 
-namespace DistributedBCrypt
+namespace DistributedBcrypt.Supervisor
 {
     public class DataLoader
     {

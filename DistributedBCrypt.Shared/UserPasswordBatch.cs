@@ -3,11 +3,11 @@
     public class UserPasswordBatch
     {
         public int BatchId { get; }
-        public UserPassword[] UserAnswers { get; }
+        public UserPassword[] UserPasswords { get; }
 
-        public UserPasswordBatch(UserPassword[] userAnswers, int batchId)
+        public UserPasswordBatch(UserPassword[] userPasswords, int batchId)
         {
-            UserAnswers = userAnswers;
+            UserPasswords = userPasswords;
             BatchId = batchId;
         }
     }

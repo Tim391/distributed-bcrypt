@@ -2,8 +2,9 @@
 using System.Linq;
 using Akka.Actor;
 using Akka.Configuration;
+using DistributedBCrypt;
 
-namespace DistributedBCrypt
+namespace DistributedBcrypt.Supervisor
 {
     class Program
     {

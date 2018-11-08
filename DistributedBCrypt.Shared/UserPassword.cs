@@ -8,7 +8,7 @@ namespace DistributedBCrypt.Shared
         public Guid UserId { get; }
         public string Password { get; }
 
-        public UserPassword(Guid userId, string password)
+        public UserPassword(Guid userId, string password) 
         {
             UserId = userId;
             Password = password;
@@ -16,7 +16,7 @@ namespace DistributedBCrypt.Shared
 
         public HashedPasswordEntry HashPasswordWithBCrypt()
         {
-            var newPassword = BCrypt.HashPassword(Password, 12); //Normally 12+. Reduced for speed during tests
+            var newPassword = BCrypt.HashPassword(Password, 12); //Normally 12+.
 
             return new HashedPasswordEntry(UserId, newPassword);
         }

@@ -11,7 +11,7 @@ namespace DistributedBCrypt.Shared
             Receive<UserPasswordBatch>(batch =>
             {
                 Console.WriteLine($"Processing batch {batch.BatchId}");
-                var newPasswords = batch.UserAnswers.AsParallel().Select(x => x.HashPasswordWithBCrypt()).ToList();
+                var newPasswords = batch.UserPasswords.AsParallel().Select(x => x.HashPasswordWithBCrypt()).ToList();
                 Console.WriteLine("Batch finished");
 
                 Sender.Tell(new BatchFinished(newPasswords, batch.BatchId));

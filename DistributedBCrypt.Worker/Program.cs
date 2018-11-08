@@ -1,26 +1,33 @@
-﻿using Topshelf;
+﻿using System;
+using Akka.Actor;
+using Akka.Configuration;
+using DistributedBCrypt.Shared;
 
-namespace DistributedBCrypt.Worker
+namespace DistributedBcrypt.Worker
 {
     class Program
     {
-        static void Main()
+        static void Main(string[] args)
         {
-            HostFactory.Run(x =>
+            var hocon = @"
+                akka {  
+                    actor.provider = ""Akka.Remote.RemoteActorRefProvider, Akka.Remote""
+                    remote {
+                        dot-netty.tcp {
+		                    port = 0 # bound to a dynamic port assigned by the OS
+		                    hostname = #MachineName#
+                        }
+                    }
+                }";
+
+            hocon = hocon.Replace("#MachineName#", Environment.MachineName);
+
+            using (var system = ActorSystem.Create("Worker", ConfigurationFactory.ParseString(hocon)))
             {
-                x.Service<DistributedBCrypt.Worker.Worker>(s =>
-                {
-                    s.ConstructUsing(name => new DistributedBCrypt.Worker.Worker());
-                    s.WhenStarted(svc => svc.Start());
-                    s.WhenStopped(svc => svc.Stop());
-                });
+                system.ActorOf(Props.Create(() => new RegistrationActor("akka.tcp://Supervisor@localhost:8099/user/supervisor")), "worker");
 
-                x.RunAsLocalSystem();
-
-                x.SetDescription("BCryptWorker");
-                x.SetDisplayName("BCryptWorker");
-                x.SetServiceName("BCryptWorker");
-            });
+                Console.ReadKey();
+            }
         }
     }
 }
