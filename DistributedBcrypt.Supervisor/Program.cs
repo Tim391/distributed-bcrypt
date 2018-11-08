@@ -19,8 +19,14 @@ namespace DistributedBcrypt.Supervisor
 
             var hocon = @"
                 akka {  
-                    actor{
+                    actor {
                         provider = ""Akka.Remote.RemoteActorRefProvider, Akka.Remote""
+                        serializers {
+                            hyperion = ""Akka.Serialization.HyperionSerializer, Akka.Serialization.Hyperion""
+                        }
+                        serialization-bindings {
+                            ""System.Object"" = hyperion
+                        }
                     }
                     remote {
                         dot-netty.tcp {
