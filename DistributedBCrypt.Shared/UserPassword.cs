@@ -14,9 +14,9 @@ namespace DistributedBCrypt.Shared
             Password = password;
         }
 
-        public HashedPasswordEntry HashPasswordWithBCrypt()
+        public HashedPasswordEntry HashPasswordWithBCrypt(int workfactor)
         {
-            var newPassword = BCrypt.HashPassword(Password, 12); //Normally 12+.
+            var newPassword = BCrypt.HashPassword(Password, workfactor); 
 
             return new HashedPasswordEntry(UserId, newPassword);
         }

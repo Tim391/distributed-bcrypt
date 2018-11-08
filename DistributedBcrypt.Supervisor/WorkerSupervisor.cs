@@ -116,7 +116,7 @@ namespace DistributedBcrypt.Supervisor
         private IImmutableList<UserPasswordBatch> CreateBatches(UserPassword[] passwords)
         {
             return passwords.BatchesOf(200)
-                .Select((pb, i) => new UserPasswordBatch(pb, i + 1))
+                .Select((pb, i) => new UserPasswordBatch(pb, i + 1, 12)) //work factor normally 12+.
                 .ToImmutableList();
         }
     }
